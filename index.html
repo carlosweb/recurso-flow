@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FGV - Módulo de Recursos de Avaliação</title>
+  <meta name="description"
+    content="Protótipo interativo e fiel do fluxo de recursos para alunos e professores - Fundação Getulio Vargas">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- Barra Superior de Controle e Simulação / Validação de Navegação -->
+  <header class="simulation-header" role="banner">
+    <div class="simulation-container">
+      <div class="brand-group">
+        <div class="brand-logo">
+          <span class="brand-badge">FGV</span>
+          <span class="brand-title">Gestão de Recursos</span>
+        </div>
+      </div>
+
+      <!-- Seletor Principal de Perfis / Fluxos Solicitado -->
+      <nav class="role-selector" aria-label="Seleção de Fluxo">
+        <button type="button" id="btn-flow-student" class="role-btn active" data-flow="student">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+          </svg>
+          Fluxo do Aluno
+        </button>
+        <button type="button" id="btn-flow-professor" class="role-btn" data-flow="professor">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            <circle cx="12" cy="9" r="2"></circle>
+            <path d="M8 15a4 4 0 0 1 8 0"></path>
+          </svg>
+          Fluxo do Professor
+        </button>
+      </nav>
+
+      <!-- Controles de Validação de Telas e Simulação Temporal -->
+      <div class="simulation-controls">
+        <div class="state-stepper" id="student-stepper" aria-label="Navegação Direta de Telas">
+          <span class="stepper-label">Telas do Aluno:</span>
+          <div class="stepper-buttons">
+            <button type="button" class="step-chip active" data-step="1" title="1 - Tela inicial abrir recurso">1.
+              Inicial</button>
+            <button type="button" class="step-chip" data-step="2" title="2 - Tela recurso text area">2. Aberto</button>
+            <button type="button" class="step-chip" data-step="3" title="3 - Tela recurso enviado">3. Enviado</button>
+            <button type="button" class="step-chip" data-step="4" title="4 - Tela após recurso enviado">4. Ações
+              (2d)</button>
+            <button type="button" class="step-chip" data-step="5" title="5 - Tela exclusão recurso">5. Excluir</button>
+            <button type="button" class="step-chip" data-step="6" title="6 - Tela edição recurso">6. Editar</button>
+            <button type="button" class="step-chip" data-step="7" title="7 - Recurso após os dois dias">7.
+              Expirado</button>
+          </div>
+        </div>
+
+        <div class="simulation-actions">
+          <button type="button" id="btn-toggle-deadline" class="action-pill"
+            title="Alternar entre dentro do prazo (< 2 dias) e após prazo (> 2 dias)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span id="deadline-pill-text">Simular +2 Dias</span>
+          </button>
+          <button type="button" id="btn-reset-data" class="action-pill danger"
+            title="Limpar localStorage e restaurar estado inicial">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+              <path d="M3 3v5h5"></path>
+            </svg>
+            Resetar
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Área Principal de Conteúdo -->
+  <main class="main-canvas" id="main-canvas">
+
+    <!-- ========================================== -->
+    <!-- FLUXO DO ALUNO (Telas 1 a 7)               -->
+    <!-- ========================================== -->
+    <div id="flow-student-view" class="flow-view active">
+      <div class="cards-wrapper">
+
+        <!-- CARD SUPERIOR: Questão da Avaliação FGV -->
+        <section class="assessment-card" aria-labelledby="question-statement">
+          <header class="card-question-header">
+            <p id="question-statement" class="question-text">
+              Na palestra, o professor Paulo Artaxo menciona a estabilidade da temperatura na era do Holoceno, época
+              atual, iniciada há cerca de 12 mil anos. Entretanto, dado o impacto ambiental da ação humana, o professor
+              apresenta uma nova era. Como ela se chama?
+            </p>
+          </header>
+
+          <fieldset class="question-options" role="radiogroup" aria-label="Alternativas da questão">
+            <legend class="sr-only">Escolha a alternativa</legend>
+
+            <!-- Alternativa 1 -->
+            <label class="option-item" for="opt-1">
+              <input type="radio" id="opt-1" name="quiz-answer" value="era-do-gelo" disabled>
+              <span class="radio-indicator"></span>
+              <span class="option-label">Era do Gelo</span>
+            </label>
+
+            <!-- Alternativa 2 -->
+            <label class="option-item" for="opt-2">
+              <input type="radio" id="opt-2" name="quiz-answer" value="mesozoica" disabled>
+              <span class="radio-indicator"></span>
+              <span class="option-label">Mesozoica</span>
+            </label>
+
+            <!-- Alternativa 3 (Selecionada e Marcada pelo Aluno) -->
+            <label class="option-item is-selected" for="opt-3">
+              <input type="radio" id="opt-3" name="quiz-answer" value="antropoceno" checked disabled>
+              <span class="radio-indicator"></span>
+              <span class="option-label">Antropoceno</span>
+            </label>
+
+            <!-- Alternativa 4 -->
+            <label class="option-item" for="opt-4">
+              <input type="radio" id="opt-4" name="quiz-answer" value="pre-cambriana" disabled>
+              <span class="radio-indicator"></span>
+              <span class="option-label">Pré-Cambriana</span>
+            </label>
+          </fieldset>
+        </section>
+
+        <!-- CARD INFERIOR: Módulo de Recurso do Aluno -->
+        <section class="resource-card" id="student-resource-card" aria-live="polite">
+
+          <!-- ESTADO 1: Tela Inicial (Botão 'Abrir recurso') -->
+          <div id="student-state-initial" class="state-block">
+            <button type="button" id="btn-open-resource" class="fgv-btn btn-teal">
+              Abrir recurso
+            </button>
+          </div>
+
+          <!-- ESTADO 2 / 6: Recurso Aberto / Digitação / Edição -->
+          <div id="student-state-compose" class="state-block hidden">
+            <div class="compose-header">
+              <button type="button" id="btn-submit-resource" class="fgv-btn btn-teal">
+                Enviar
+              </button>
+              <button type="button" id="btn-cancel-edit" class="fgv-btn btn-secondary hidden"
+                title="Cancelar alterações">
+                Cancelar
+              </button>
+            </div>
+
+            <div class="textarea-container">
+              <textarea id="resource-input" class="fgv-textarea editable" maxlength="2000"
+                placeholder="Descreva fundamentadamente os motivos para o pedido de recurso..."
+                aria-label="Fundamentação do pedido de recurso"
+                aria-describedby="char-count-live">Peço revisão da questão, acredito que o texto foi mal elaborado e de difícil compreensão.</textarea>
+              <div class="char-counter" id="char-count-live" aria-live="polite">
+                <span id="current-char-count">88</span> / 2000
+              </div>
+            </div>
+          </div>
+
+          <!-- ESTADO 3: Mensagem de Sucesso Imediata ('Recurso enviado') -->
+          <div id="student-state-submitted" class="state-block hidden">
+            <div class="submitted-header">
+              <button type="button" class="fgv-btn btn-teal btn-disabled" disabled>
+                Enviar
+              </button>
+            </div>
+
+            <div class="success-banner" role="status">
+              <div class="success-content">
+                <svg class="success-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <span class="success-text">Recurso enviado</span>
+              </div>
+            </div>
+
+            <p class="deadline-notice">
+              Caro aluno, você tem 2 dias para editar ou excluir o recurso.
+            </p>
+          </div>
+
+          <!-- ESTADO 4 / 7: Tela Após Recurso Enviado (com ou sem botões conforme prazo) -->
+          <div id="student-state-submitted-view" class="state-block hidden">
+            <!-- Barra Superior do Recurso: Botões de Ação + Label de Status do Aluno -->
+            <div class="submitted-top-header">
+              <!-- Barra de Ações (Editar e Excluir) - some se prazo > 2 dias (Tela 7) -->
+              <div id="submitted-action-bar" class="actions-header">
+                <button type="button" id="btn-edit-resource" class="fgv-btn btn-teal" title="Editar recurso submetido">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 20h9"></path>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                  </svg>
+                  <span>Editar</span>
+                </button>
+
+                <button type="button" id="btn-open-delete-modal" class="fgv-btn btn-pink" title="Excluir recurso">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                  <span>Excluir</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Textarea desabilitado/leitura com o texto do aluno -->
+            <div class="textarea-container">
+              <textarea id="resource-readonly-input" class="fgv-textarea readonly" readonly disabled
+                aria-label="Texto do recurso submetido">Peço revisão da questão, acredito que o texto foi mal elaborado e de difícil compreensão.</textarea>
+              <div class="char-counter" id="char-count-readonly">
+                <span id="submitted-char-count">125</span> / 2000
+              </div>
+            </div>
+
+            <!-- Status do Parecer do Professor (Visível pelo aluno quando enviado, em análise ou avaliado) -->
+            <div id="student-review-status-card" class="professor-feedback-callout">
+              <div class="feedback-badge em-analise" id="feedback-badge-status">Status: Em Análise</div>
+              <p class="feedback-text hidden" id="feedback-display-text"></p>
+            </div>
+          </div>
+
+        </section>
+
+      </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- FLUXO DO PROFESSOR (Dashboard & Avaliação) -->
+    <!-- ========================================== -->
+    <div id="flow-professor-view" class="flow-view">
+      <div class="cards-wrapper prof-wrapper">
+
+        <!-- SUB-VISÃO 1: DASHBOARD DE RECURSOS (Lista de Alunos & KPIs) -->
+        <section id="prof-dashboard-view" class="prof-subview active" aria-label="Dashboard de Recursos do Professor">
+          <header class="prof-page-header">
+            <h1 class="prof-screen-title">Tela recursos</h1>
+
+            <div class="prof-top-toolbar">
+              <div class="prof-toolbar-actions">
+                <button type="button" id="btn-prof-import" class="fgv-btn btn-toolbar-outline"
+                  title="Importar recursos">
+                  Importar recursos
+                </button>
+                <button type="button" id="btn-prof-export" class="fgv-btn btn-toolbar-outline"
+                  title="Exportar recursos">
+                  Exportar recursos
+                </button>
+                <button type="button" id="btn-open-exam-context" class="fgv-btn btn-toolbar-secondary"
+                  title="Ver tela da Prova Capitalização">
+                  Ver Prova
+                </button>
+              </div>
+
+              <!-- Mini Dashboard: Total Recursos -->
+              <div class="prof-kpi-card" aria-label="Total de recursos">
+                <span class="kpi-label">Total de recursos</span>
+                <span class="kpi-number" id="dashboard-total-abertos">9</span>
+              </div>
+            </div>
+          </header>
+
+          <!-- Tabela de Alunos com Recursos -->
+          <div class="prof-table-card">
+            <!-- Barra de Busca Pill -->
+            <div class="prof-search-container">
+              <div class="prof-search-box">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="prof-search-input" class="prof-search-input" placeholder="Buscar..."
+                  aria-label="Buscar aluno por nome ou matrícula">
+              </div>
+            </div>
+
+            <!-- Tabela Estilizada FGV -->
+            <div class="prof-table-responsive">
+              <table class="fgv-table">
+                <thead>
+                  <tr>
+                    <th scope="col" class="th-aluno">Aluno</th>
+                    <th scope="col" class="th-center">Qtd / recursos</th>
+                    <th scope="col" class="th-center">Fechados</th>
+                    <th scope="col" class="th-center">Abertos</th>
+                    <th scope="col" class="th-center">opções</th>
+                  </tr>
+                </thead>
+                <tbody id="prof-students-tbody">
+                  <!-- Linhas geradas dinamicamente via app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TOGGLE DE DASHBOARD DE ANALYTICS & GRÁFICOS -->
+          <div class="prof-analytics-toggle-card">
+            <button type="button" id="btn-toggle-analytics" class="analytics-toggle-btn"
+              aria-expanded="false" aria-controls="prof-analytics-dashboard">
+              <div class="toggle-btn-left">
+                <div class="toggle-icon-badge">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                  </svg>
+                </div>
+                <div class="toggle-text-block">
+                  <span class="toggle-title">Dashboard Analítico de Recursos</span>
+                  <span class="toggle-subtitle">Gráficos de pizza e barras, status de deferimento e métricas consolidadas</span>
+                </div>
+              </div>
+              <div class="toggle-btn-right">
+                <span class="toggle-status-badge" id="analytics-toggle-text">Exibir Gráficos</span>
+                <div class="toggle-chevron-circle">
+                  <svg class="toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+              </div>
+            </button>
+
+            <!-- CONTEÚDO EXPANSÍVEL DO DASHBOARD DE GRÁFICOS -->
+            <div id="prof-analytics-dashboard" class="analytics-content-panel collapsed" aria-hidden="true">
+              <div class="analytics-inner">
+                <!-- 1. GRID DE CARDS COM AS 6 MÉTRICAS PRINCIPAIS -->
+                <div class="analytics-kpi-grid">
+                  <!-- Quantidade de recursos -->
+                  <div class="analytics-stat-card card-total">
+                    <div class="stat-card-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                      </svg>
+                    </div>
+                    <div class="stat-card-info">
+                      <span class="stat-card-label">Total Recursos</span>
+                      <span class="stat-card-val" id="stat-total-recursos">9</span>
+                    </div>
+                  </div>
+
+                  <!-- Recursos Deferidos -->
+                  <div class="analytics-stat-card card-deferidos">
+                    <div class="stat-card-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <div class="stat-card-info">
+                      <span class="stat-card-label">Deferidos</span>
+                      <span class="stat-card-val" id="stat-deferidos">3</span>
+                    </div>
+                  </div>
+
+                  <!-- Recursos Indeferidos -->
+                  <div class="analytics-stat-card card-indeferidos">
+                    <div class="stat-card-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
+                    </div>
+                    <div class="stat-card-info">
+                      <span class="stat-card-label">Indeferidos</span>
+                      <span class="stat-card-val" id="stat-indeferidos">2</span>
+                    </div>
+                  </div>
+
+                  <!-- Abertos (Em Análise) -->
+                  <div class="analytics-stat-card card-abertos">
+                    <div class="stat-card-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                      </svg>
+                    </div>
+                    <div class="stat-card-info">
+                      <span class="stat-card-label">Abertos</span>
+                      <span class="stat-card-val" id="stat-abertos">4</span>
+                    </div>
+                  </div>
+
+                  <!-- Fechados (Julgados) -->
+                  <div class="analytics-stat-card card-fechados">
+                    <div class="stat-card-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                      </svg>
+                    </div>
+                    <div class="stat-card-info">
+                      <span class="stat-card-label">Fechados</span>
+                      <span class="stat-card-val" id="stat-fechados">5</span>
+                    </div>
+                  </div>
+
+                  <!-- Quantidade de Alunos -->
+                  <div class="analytics-stat-card card-alunos">
+                    <div class="stat-card-icon">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                      </svg>
+                    </div>
+                    <div class="stat-card-info">
+                      <span class="stat-card-label">Alunos</span>
+                      <span class="stat-card-val" id="stat-alunos">4</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2. SEÇÃO DE GRÁFICOS (PIZZA + BARRAS) -->
+                <div class="analytics-charts-grid">
+                  <!-- GRÁFICO DE PIZZA (DONUT) -->
+                  <div class="chart-box-card">
+                    <div class="chart-header">
+                      <div>
+                        <h3 class="chart-title">Distribuição por Status (Pizza)</h3>
+                        <p class="chart-subtitle">Proporção dos pareceres emitidos</p>
+                      </div>
+                      <span class="chart-badge">Pareceres</span>
+                    </div>
+                    <div class="chart-donut-wrapper">
+                      <div class="donut-svg-container">
+                        <svg class="donut-svg" viewBox="0 0 160 160" width="160" height="160">
+                          <!-- Círculo de fundo cinza/navy -->
+                          <circle cx="80" cy="80" r="58" class="donut-bg-circle"></circle>
+                          <!-- Segmentos circulares com rotação de -90deg para começar no topo -->
+                          <g transform="rotate(-90 80 80)">
+                            <circle id="donut-segment-deferidos" cx="80" cy="80" r="58" class="donut-segment segment-deferidos"></circle>
+                            <circle id="donut-segment-indeferidos" cx="80" cy="80" r="58" class="donut-segment segment-indeferidos"></circle>
+                            <circle id="donut-segment-abertos" cx="80" cy="80" r="58" class="donut-segment segment-abertos"></circle>
+                          </g>
+                        </svg>
+                        <div class="donut-center-info">
+                          <span class="donut-center-num" id="donut-center-total">9</span>
+                          <span class="donut-center-sub">Recursos</span>
+                        </div>
+                      </div>
+                      <!-- Legenda da Pizza com Valores e Percentuais -->
+                      <div class="donut-legend">
+                        <div class="legend-row">
+                          <span class="legend-dot dot-deferidos"></span>
+                          <span class="legend-name">Deferidos</span>
+                          <strong class="legend-qty" id="legend-qty-deferidos">3</strong>
+                          <span class="legend-pct" id="legend-pct-deferidos">33%</span>
+                        </div>
+                        <div class="legend-row">
+                          <span class="legend-dot dot-indeferidos"></span>
+                          <span class="legend-name">Indeferidos</span>
+                          <strong class="legend-qty" id="legend-qty-indeferidos">2</strong>
+                          <span class="legend-pct" id="legend-pct-indeferidos">22%</span>
+                        </div>
+                        <div class="legend-row">
+                          <span class="legend-dot dot-abertos"></span>
+                          <span class="legend-name">Em Análise (Abertos)</span>
+                          <strong class="legend-qty" id="legend-qty-abertos">4</strong>
+                          <span class="legend-pct" id="legend-pct-abertos">45%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- GRÁFICO DE BARRAS COMPARATIVO -->
+                  <div class="chart-box-card">
+                    <div class="chart-header">
+                      <div>
+                        <h3 class="chart-title">Comparativo Geral (Barras)</h3>
+                        <p class="chart-subtitle">Volume absoluto por categoria</p>
+                      </div>
+                      <span class="chart-badge">Volume</span>
+                    </div>
+                    <div class="chart-bars-wrapper" id="bar-chart-container">
+                      <div class="bar-chart-column" data-category="total">
+                        <div class="bar-value-label" id="bar-label-total">9</div>
+                        <div class="bar-track">
+                          <div class="bar-fill bar-fill-total" id="bar-fill-total" style="height: 100%;"></div>
+                        </div>
+                        <span class="bar-axis-label">Total</span>
+                      </div>
+                      <div class="bar-chart-column" data-category="fechados">
+                        <div class="bar-value-label" id="bar-label-fechados">5</div>
+                        <div class="bar-track">
+                          <div class="bar-fill bar-fill-fechados" id="bar-fill-fechados" style="height: 55%;"></div>
+                        </div>
+                        <span class="bar-axis-label">Fechados</span>
+                      </div>
+                      <div class="bar-chart-column" data-category="abertos">
+                        <div class="bar-value-label" id="bar-label-abertos">4</div>
+                        <div class="bar-track">
+                          <div class="bar-fill bar-fill-abertos" id="bar-fill-abertos" style="height: 44%;"></div>
+                        </div>
+                        <span class="bar-axis-label">Abertos</span>
+                      </div>
+                      <div class="bar-chart-column" data-category="deferidos">
+                        <div class="bar-value-label" id="bar-label-deferidos">3</div>
+                        <div class="bar-track">
+                          <div class="bar-fill bar-fill-deferidos" id="bar-fill-deferidos" style="height: 33%;"></div>
+                        </div>
+                        <span class="bar-axis-label">Deferidos</span>
+                      </div>
+                      <div class="bar-chart-column" data-category="indeferidos">
+                        <div class="bar-value-label" id="bar-label-indeferidos">2</div>
+                        <div class="bar-track">
+                          <div class="bar-fill bar-fill-indeferidos" id="bar-fill-indeferidos" style="height: 22%;"></div>
+                        </div>
+                        <span class="bar-axis-label">Indeferidos</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- SUB-VISÃO 2: CONTEXTO DA PROVA CAPITALIZAÇÃO (FGV Conhecimento) -->
+        <section id="prof-exam-context-view" class="prof-subview hidden"
+          aria-label="Portal FGV Conhecimento - Prova Capitalização">
+          <div class="fgv-portal-container">
+            <!-- Topbar Institucional FGV Conhecimento -->
+            <div class="portal-nav-bar">
+              <div class="portal-brand">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#50ad98" aria-hidden="true">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                  <polyline points="2 17 12 22 22 17" fill="none" stroke="#50ad98" stroke-width="2"></polyline>
+                  <polyline points="2 12 12 17 22 12" fill="none" stroke="#50ad98" stroke-width="2"></polyline>
+                </svg>
+                <span class="portal-logo-text">FGV CONHECIMENTO</span>
+                <span class="portal-link">Exames</span>
+                <span class="portal-link">Administração do site</span>
+              </div>
+              <div class="portal-user-meta">
+                <span class="portal-meta-item">Acessibilidade</span>
+                <span class="portal-meta-item">CC ▾</span>
+                <span class="portal-meta-item">Modo de edição ○</span>
+              </div>
+            </div>
+
+            <div class="portal-content-box">
+              <div class="portal-sidebar-toggle">
+                <div class="sidebar-icon-sq">D</div>
+              </div>
+
+              <div class="portal-main-details">
+                <nav class="portal-breadcrumbs" aria-label="Navegação estrutural">
+                  Capitalização / Capitalização / <strong>Prova Capitalização - 07/2026</strong>
+                </nav>
+
+                <div class="portal-schedule-bar">
+                  <span><strong>Aberto:</strong> sábado, 11 jul. 2026, 14:00</span>
+                  <span><strong>Fechado:</strong> sábado, 11 jul. 2026, 16:00</span>
+                </div>
+
+                <h2 class="portal-exam-title">Prova Capitalização - 07/2026</h2>
+
+                <div class="portal-notice-box">
+                  <p>Caso tenha alguma dificuldade para iniciar a tentativa clique no botão para atualizar a página.</p>
+                  <button type="button" class="portal-btn-refresh">Atualizar página</button>
+                </div>
+
+                <div class="portal-exam-instructions">
+                  <button type="button" class="portal-btn-preview">Ver prévia do questionário</button>
+                  <p><strong>Tentativas permitidas:</strong> 1</p>
+                  <p class="portal-muted-text">Este questionário foi configurado para que os estudantes possam fazer uma
+                    tentativa, somente se estiverem usando o Safe Exam Browser.</p>
+                  <button type="button" class="portal-btn-config">Baixar configuração</button>
+                  <p><strong>Duração máxima:</strong> 2 horas</p>
+                </div>
+
+                <!-- Tabela de Tentativas -->
+                <div class="portal-attempts-section">
+                  <span class="attempts-total">Tentativas: 132</span>
+                  <h3 class="attempts-header">Suas tentativas</h3>
+                  <table class="portal-attempts-table">
+                    <thead>
+                      <tr>
+                        <th colspan="2">Tentativa 1</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="cell-prop">Situação</td>
+                        <td>Finalizada</td>
+                      </tr>
+                      <tr>
+                        <td class="cell-prop">Iniciado</td>
+                        <td>quarta-feira, 23 set. 2026, 16:02</td>
+                      </tr>
+                      <tr>
+                        <td class="cell-prop">Concluído</td>
+                        <td>quarta-feira, 23 set. 2026, 16:02</td>
+                      </tr>
+                      <tr>
+                        <td class="cell-prop">Duração</td>
+                        <td>21 segundos</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <span class="portal-revisao-link">Revisão</span>
+                </div>
+
+                <!-- Rodapé com Botão Recursos -->
+                <div class="portal-footer-actions">
+                  <span class="portal-footer-note">Atualmente este questionário não está disponível.</span>
+                  <div class="portal-footer-buttons">
+                    <button type="button" class="portal-foot-btn">Avaliador</button>
+                    <button type="button" class="portal-foot-btn">Teste de microfone</button>
+                    <button type="button" class="portal-foot-btn">Teste da WebCam</button>
+                    <button type="button" id="btn-portal-go-recursos" class="portal-foot-btn highlight"
+                      title="Acessar o módulo de recursos">
+                      Recursos
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- SUB-VISÃO 3: AVALIAÇÃO INDIVIDUAL DO ALUNO (Telas com Paginação e Modo Todas) -->
+        <section id="prof-student-detail-view" class="prof-subview hidden" aria-label="Avaliação Individual do Aluno">
+          <header class="prof-page-header">
+            <h1 class="prof-screen-title">Tela recursos</h1>
+
+            <div class="prof-top-toolbar">
+              <div class="prof-toolbar-actions">
+                <button type="button" id="btn-detail-back" class="fgv-btn btn-toolbar-back"
+                  title="Voltar para a lista de alunos">
+                  Voltar
+                </button>
+                <button type="button" id="btn-detail-import" class="fgv-btn btn-toolbar-outline"
+                  title="Importar recursos">
+                  Importar recursos
+                </button>
+                <button type="button" id="btn-detail-export" class="fgv-btn btn-toolbar-outline"
+                  title="Exportar recursos">
+                  Exportar recursos
+                </button>
+              </div>
+
+              <!-- Indicadores do Aluno Selecionado -->
+              <div class="prof-kpi-group">
+                <div class="prof-kpi-card" aria-label="Total recursos abertos">
+                  <span class="kpi-label">Total recursos abertos</span>
+                  <span class="kpi-number" id="detail-total-abertos">10</span>
+                </div>
+                <div class="prof-kpi-card success" aria-label="Total recursos fechados">
+                  <span class="kpi-label">Total recursos fechados</span>
+                  <span class="kpi-number" id="detail-total-fechados">5</span>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <!-- Card de Identificação do Aluno e Alternador de Modo de Visualização -->
+          <div class="student-detail-header-card">
+            <div class="student-identity-info">
+              <div class="avatar-circle" id="detail-student-avatar">AL</div>
+              <div>
+                <h2 class="student-name" id="detail-student-name">Aluno: Carlos Eduardo M.</h2>
+                <p class="student-sub" id="detail-student-meta">Matrícula: 2024.1.0984</p>
+              </div>
+            </div>
+
+            <!-- Alternador de Modos Solicitado -->
+            <div class="view-mode-selector" role="group" aria-label="Modo de visualização das questões">
+              <button type="button" id="btn-mode-single" class="mode-btn active" title="Visualizar uma questão por vez">
+                Questão uma por vez
+              </button>
+              <button type="button" id="btn-mode-all" class="mode-btn"
+                title="Visualizar todas as questões na mesma página">
+                Ver todas as questões
+              </button>
+            </div>
+          </div>
+
+          <!-- MODO 1: QUESTÃO UMA POR VEZ (com Navegação Anterior/Próxima) -->
+          <div id="prof-single-question-wrapper" class="question-view-mode active">
+            <h2 class="question-title-indicator" id="single-question-title">Questão 1</h2>
+
+            <div class="resource-card prof-panel" id="single-question-card">
+              <!-- Enunciado e Gabarito -->
+              <div class="prof-question-context">
+                <p class="question-text" id="single-question-statement">
+                  Carregando enunciado...
+                </p>
+                <div class="prof-comparison-grid">
+                  <div class="comparison-box student-choice">
+                    <span class="box-caption">Resposta marcada pelo aluno:</span>
+                    <strong class="box-val" id="single-student-choice">Antropoceno</strong>
+                  </div>
+                  <div class="comparison-box official-choice">
+                    <span class="box-caption">Gabarito da Banca:</span>
+                    <strong class="box-val" id="single-official-choice">Mesozoica</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Fundamentação do Aluno -->
+              <div class="prof-section-group">
+                <label class="prof-group-title">Fundamentação apresentada pelo Aluno:</label>
+                <div class="student-recurso-display" id="single-student-fundamentacao">
+                  Peço revisão da questão, acredito que o texto foi mal elaborado e de difícil compreensão.
+                </div>
+              </div>
+
+              <!-- Parecer da Banca -->
+              <div class="prof-section-group">
+                <label for="single-prof-feedback" class="prof-group-title">
+                  Parecer / Justificativa da Banca:
+                </label>
+                <textarea id="single-prof-feedback" class="fgv-textarea prof-textarea"
+                  placeholder="A banca examinou a questão e constatou..."></textarea>
+              </div>
+
+              <!-- Aviso de Julgamento Finalizado (Regra de Negócio: Não pode voltar atrás) -->
+              <div id="single-evaluation-locked-notice" class="prof-evaluation-locked-notice hidden" role="alert">
+                <div class="locked-notice-content">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <span id="single-locked-notice-text">
+                    <strong>Julgamento Finalizado:</strong> Decisão registrada em definitivo. O parecer e o status não podem mais ser alterados.
+                  </span>
+                </div>
+              </div>
+
+              <!-- Ações da Banca -->
+              <div class="prof-action-bar">
+                <div class="action-buttons-left">
+                  <button type="button" id="btn-single-deferir" class="fgv-btn btn-deferir"
+                    title="Aceitar o recurso do aluno e atribuir os pontos">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Deferir Recurso (Aceito)
+                  </button>
+
+                  <button type="button" id="btn-single-indeferir" class="fgv-btn btn-indeferir"
+                    title="Recusar o recurso do aluno e manter nota">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    Indeferir Recurso (Recusado)
+                  </button>
+                </div>
+
+                <button type="button" id="btn-single-save-feedback" class="fgv-btn btn-secondary">
+                  Salvar Parecer
+                </button>
+              </div>
+            </div>
+
+            <!-- Paginação Anterior / Próxima Solicitada -->
+            <div class="prof-pagination-bar">
+              <button type="button" id="btn-question-prev" class="fgv-btn btn-pagination">
+                Anterior
+              </button>
+              <button type="button" id="btn-question-next" class="fgv-btn btn-pagination">
+                Proxima
+              </button>
+            </div>
+          </div>
+
+          <!-- MODO 2: VER TODAS AS QUESTÕES -->
+          <div id="prof-all-questions-wrapper" class="question-view-mode hidden">
+            <div id="all-questions-list" class="all-questions-stack">
+              <!-- Cards empilhados gerados dinamicamente via app.js -->
+            </div>
+          </div>
+
+        </section>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL DE EXCLUSÃO (Tela 5)                 -->
+  <!-- ========================================== -->
+  <dialog id="delete-confirmation-dialog" class="fgv-modal-dialog" aria-labelledby="modal-delete-title">
+    <div class="modal-box">
+      <h2 id="modal-delete-title" class="modal-title">
+        Deseja realmente excluir o pedido<br>de recurso de revisão?
+      </h2>
+      <div class="modal-actions">
+        <button type="button" id="btn-modal-cancel" class="modal-btn btn-cancel">
+          Cancelar
+        </button>
+        <button type="button" id="btn-modal-confirm-delete" class="modal-btn btn-confirm-delete">
+          Excluir
+        </button>
+      </div>
+    </div>
+  </dialog>
+ 
+  <!-- ============================================================== -->
+  <!-- MODAL DE CONFIRMAÇÃO DE DECISÃO DO PROFESSOR (REGRA DE NEGÓCIO) -->
+  <!-- ============================================================== -->
+  <dialog id="prof-decision-dialog" class="fgv-modal-dialog" aria-labelledby="prof-modal-title">
+    <div class="modal-box prof-decision-modal-box">
+      <div class="prof-modal-icon-header">
+        <div class="prof-modal-icon-badge" id="prof-modal-icon-badge">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <h2 id="prof-modal-title" class="modal-title prof-modal-title">
+          Confirmação Definitiva de Julgamento
+        </h2>
+      </div>
+
+      <div class="prof-modal-summary-card">
+        <div class="modal-summary-row">
+          <span class="summary-label">Aluno:</span>
+          <strong class="summary-value" id="prof-modal-student-name">Carlos Eduardo M.</strong>
+        </div>
+        <div class="modal-summary-row">
+          <span class="summary-label">Questão:</span>
+          <strong class="summary-value" id="prof-modal-question-title">Questão 4</strong>
+        </div>
+        <div class="modal-summary-row">
+          <span class="summary-label">Decisão Proposta:</span>
+          <span class="prof-decision-badge" id="prof-modal-decision-badge">DEFERIDO</span>
+        </div>
+        <div class="modal-summary-row feedback-row">
+          <span class="summary-label">Parecer Registrado:</span>
+          <p class="summary-feedback-preview" id="prof-modal-feedback-preview">"Texto do parecer..."</p>
+        </div>
+      </div>
+
+      <div class="prof-modal-warning-box">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <p>
+          <strong>Atenção:</strong> Você só poderá realizar este julgamento <strong>uma única vez</strong>. Após a confirmação, o parecer e a decisão serão registrados definitivamente e <strong>não poderão ser alterados ou revertidos</strong>.
+        </p>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="btn-prof-modal-cancel" class="modal-btn btn-cancel">
+          Cancelar
+        </button>
+        <button type="button" id="btn-prof-modal-confirm" class="modal-btn btn-confirm-decision">
+          Confirmar Julgamento
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Notificação Toast Flutuante -->
+  <div id="toast-notification" class="toast-popup" role="status" aria-live="polite">
+    <span id="toast-message">Operação realizada com sucesso</span>
+  </div>
+
+  <script src="app.js?v=10"></script>
+</body>
+
+</html>
