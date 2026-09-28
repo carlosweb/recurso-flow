@@ -450,6 +450,34 @@ body {
   pointer-events: none;
 }
 
+/* Protocolo do Recurso (Fluxo do Aluno e Professor) */
+.resource-protocol {
+  display: inline-block;
+  font-size: 0.82rem;
+  color: #94a3b8 !important;
+  margin-bottom: 12px;
+  letter-spacing: 0.3px;
+  font-weight: 400;
+}
+
+.resource-protocol span,
+.resource-protocol .student-protocol-display,
+.resource-protocol .protocol-number {
+  color: #94a3b8 !important;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+}
+
+.q-title-protocol-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.q-title-protocol-group .resource-protocol {
+  margin-bottom: 0;
+}
+
 /* Cabeçalhos de Ação nos Estados */
 .compose-header,
 .submitted-header,

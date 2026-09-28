@@ -29,7 +29,8 @@
             officialChoice: 'Curva vertical no nível de desemprego natural',
             fundamentacao: 'Solicito revisão da questão devido à ambiguidade na interpretação do modelo clássico e novo-keynesiano no longo prazo.',
             parecer: 'A banca considerou improcedente a alegação, tendo em vista a uniformidade da bibliografia indicada no plano de ensino.',
-            status: 'indeferido' // 'em_analise' | 'deferido' | 'indeferido'
+            status: 'indeferido', // 'em_analise' | 'deferido' | 'indeferido'
+            protocolo: '02021184920481729381'
           },
           {
             id: 'q2',
@@ -40,7 +41,8 @@
             officialChoice: 'Competência do Banco Central sob diretrizes do CMN',
             fundamentacao: 'Houve divergência na pontuação atribuída pelo sistema na leitura do gabarito preliminar.',
             parecer: 'Recurso acolhido. Constatado erro material na leitura ótica da folha de respostas.',
-            status: 'deferido'
+            status: 'deferido',
+            protocolo: '02021948201948201847'
           },
           {
             id: 'q4',
@@ -51,7 +53,8 @@
             officialChoice: 'Mesozoica',
             fundamentacao: DEFAULT_RECURSO_TEXT,
             parecer: 'A banca examinou a questão e constatou que a redação está de acordo com a bibliografia indicada no programa de estudos.',
-            status: 'em_analise' // Sincronizado dinamicamente com o fluxo do aluno!
+            status: 'em_analise', // Sincronizado dinamicamente com o fluxo do aluno!
+            protocolo: '02021257293369884061'
           }
         ]
       },
@@ -148,6 +151,17 @@
     ];
   }
 
+  /* ===================================================================
+     GERAÇÃO DE PROTOCOLO ALEATÓRIO (20 Dígitos - Formato FGV)
+     =================================================================== */
+  function generateProtocolNumber() {
+    let result = '';
+    for (let i = 0; i < 20; i++) {
+      result += Math.floor(Math.random() * 10).toString();
+    }
+    return result;
+  }
+
   // Função geradora de estado inicial para garantir imutabilidade
   function getInitialState() {
     return {
@@ -155,6 +169,7 @@
       currentStep: 1,                 // 1 a 7 conforme mockups
       hasResource: true,              // por padrão já possui recurso para testes
       resourceText: DEFAULT_RECURSO_TEXT,
+      protocolNumber: '02021257293369884061', // Protocolo formato 20 dígitos FGV
       submissionDate: '24/09/2026 às 14:22',
       isDeadlineExpired: false,       // true = após os 2 dias (Tela 7)
       professorStatus: 'em_analise',  // 'em_analise' | 'deferido' | 'indeferido'
@@ -197,6 +212,7 @@
     btnOpenResource: document.getElementById('btn-open-resource'),
 
     stateCompose: document.getElementById('student-state-compose'),
+    studentProtocolCompose: document.getElementById('student-protocol-compose'),
     btnSubmitResource: document.getElementById('btn-submit-resource'),
     btnCancelEdit: document.getElementById('btn-cancel-edit'),
     resourceInput: document.getElementById('resource-input'),
@@ -285,6 +301,7 @@
 
     // Questão Única
     singleQuestionTitle: document.getElementById('single-question-title'),
+    singleQuestionProtocolNumber: document.getElementById('single-question-protocol-number'),
     singleQuestionStatusTag: document.getElementById('single-question-status-tag'),
     singleQuestionStatement: document.getElementById('single-question-statement'),
     singleStudentChoice: document.getElementById('single-student-choice'),
@@ -349,6 +366,7 @@
           q4.fundamentacao = appState.resourceText || DEFAULT_RECURSO_TEXT;
           q4.parecer = appState.professorFeedback || '';
           q4.status = appState.professorStatus || 'em_analise';
+          q4.protocolo = appState.protocolNumber || '02021257293369884061';
         }
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
@@ -372,11 +390,23 @@
   }
 
   /* ===================================================================
+     RENDERIZAÇÃO DO PROTOCOLO DO RECURSO (Tag small)
+     =================================================================== */
+  function renderStudentProtocol() {
+    const protocol = appState.protocolNumber || '02021257293369884061';
+    const elements = document.querySelectorAll('.student-protocol-display');
+    elements.forEach(el => {
+      el.textContent = protocol;
+    });
+  }
+
+  /* ===================================================================
      RENDERIZAÇÃO PRINCIPAL DO FLUXO DO ALUNO (Telas 1 a 7)
      =================================================================== */
   function renderStudentStep(step) {
     appState.currentStep = step;
     saveState();
+    renderStudentProtocol();
 
     // Atualiza chips do stepper no cabeçalho
     dom.stepChips.forEach(chip => {
@@ -402,6 +432,7 @@
 
       case 2:
         dom.stateCompose.classList.remove('hidden');
+        if (dom.studentProtocolCompose) dom.studentProtocolCompose.classList.add('hidden');
         dom.btnCancelEdit.classList.add('hidden');
         dom.btnSubmitResource.textContent = 'Enviar';
         dom.resourceInput.value = appState.resourceText || DEFAULT_RECURSO_TEXT;
@@ -436,6 +467,7 @@
 
       case 6:
         dom.stateCompose.classList.remove('hidden');
+        if (dom.studentProtocolCompose) dom.studentProtocolCompose.classList.remove('hidden');
         dom.btnCancelEdit.classList.remove('hidden');
         dom.btnSubmitResource.textContent = 'Salvar alterações';
         dom.resourceInput.value = appState.resourceText || DEFAULT_RECURSO_TEXT;
@@ -612,6 +644,7 @@
         q4.fundamentacao = appState.resourceText || DEFAULT_RECURSO_TEXT;
         q4.parecer = appState.professorFeedback || '';
         q4.status = appState.professorStatus || 'em_analise';
+        q4.protocolo = appState.protocolNumber || '02021257293369884061';
       }
     }
 
@@ -824,6 +857,15 @@
 
     dom.singleQuestionTitle.textContent = q.title || `Questão ${q.number || (qIndex + 1)}`;
 
+    // Protocolo do recurso do aluno
+    const qProtocol = (student.id === 'carlos-eduardo' && (q.number === 4 || q.id === 'q4'))
+      ? (appState.protocolNumber || '02021257293369884061')
+      : (q.protocolo || (q.protocolo = generateProtocolNumber()));
+
+    if (dom.singleQuestionProtocolNumber) {
+      dom.singleQuestionProtocolNumber.textContent = qProtocol;
+    }
+
     // Status inline na visualização de questão única (Fiel ao Mockup)
     const status = q.status || 'em_analise';
     if (dom.singleQuestionStatusTag) {
@@ -896,11 +938,18 @@
 
     questions.forEach((q, idx) => {
       const isEvaluated = (q.status === 'deferido' || q.status === 'indeferido');
+      const qProtocol = (student.id === 'carlos-eduardo' && (q.number === 4 || q.id === 'q4'))
+        ? (appState.protocolNumber || '02021257293369884061')
+        : (q.protocolo || (q.protocolo = generateProtocolNumber()));
+
       const card = document.createElement('div');
       card.className = 'all-question-item-card';
       card.innerHTML = `
         <div class="all-q-header">
-          <h3 class="all-q-title">${q.title || `Questão ${q.number || (idx + 1)}`}</h3>
+          <div class="q-title-protocol-group">
+            <h3 class="all-q-title">${q.title || `Questão ${q.number || (idx + 1)}`}</h3>
+            <small class="resource-protocol">Protocolo: <span class="protocol-number">${qProtocol}</span></small>
+          </div>
           <span class="resource-status-tag ${q.status || 'em-analise'}">
             ${q.status === 'deferido' ? 'DEFERIDO' : (q.status === 'indeferido' ? 'INDEFERIDO' : 'EM ANÁLISE')}
           </span>
@@ -1119,6 +1168,7 @@
       // Reinicia estado reativo completamente a partir da factory
       appState = getInitialState();
       saveState();
+      renderStudentProtocol();
 
       // Limpa qualquer timer pendente
       if (autoAdvanceTimer) {
@@ -1171,14 +1221,23 @@
       appState.hasResource = true;
       appState.submissionDate = new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       
+      // Ao criar o recurso (ou se ainda não tiver protocolo), gera novo protocolo randômico de 20 dígitos
+      if (!isEditing || !appState.protocolNumber) {
+        appState.protocolNumber = generateProtocolNumber();
+      }
+
       // Sincroniza fundamentação na Questão 4 do Carlos Eduardo
       const ce = appState.students.find(s => s.id === 'carlos-eduardo');
       if (ce) {
         const q4 = ce.questions.find(q => q.number === 4);
-        if (q4) q4.fundamentacao = text;
+        if (q4) {
+          q4.fundamentacao = text;
+          q4.protocolo = appState.protocolNumber;
+        }
       }
 
       saveState();
+      renderStudentProtocol();
 
       if (isEditing) {
         showToast('Recurso atualizado com sucesso!');
@@ -1223,6 +1282,7 @@
       appState.resourceText = DEFAULT_RECURSO_TEXT;
       appState.professorStatus = 'em_analise';
       appState.isDeadlineExpired = false;
+      appState.protocolNumber = null;
       dom.deadlinePillText.textContent = 'Simular +2 Dias';
       saveState();
       showToast('Pedido de recurso excluído com sucesso.');
@@ -1391,6 +1451,7 @@
      =================================================================== */
   function init() {
     setupEventListeners();
+    renderStudentProtocol();
 
     // Inicia no fluxo salvo (padrão 'student')
     if (appState.activeFlow === 'professor') {

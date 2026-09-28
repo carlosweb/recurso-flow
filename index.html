@@ -153,6 +153,11 @@
 
           <!-- ESTADO 2 / 6: Recurso Aberto / Digitação / Edição -->
           <div id="student-state-compose" class="state-block hidden">
+            <!-- Protocolo do Recurso (visível quando em edição - Tela 6) -->
+            <small class="resource-protocol hidden" id="student-protocol-compose">
+              Protocolo: <span class="student-protocol-display">02021257293369884061</span>
+            </small>
+
             <div class="compose-header">
               <button type="button" id="btn-submit-resource" class="fgv-btn btn-teal">
                 Enviar
@@ -176,6 +181,11 @@
 
           <!-- ESTADO 3: Mensagem de Sucesso Imediata ('Recurso enviado') -->
           <div id="student-state-submitted" class="state-block hidden">
+            <!-- Protocolo do Recurso no topo do content -->
+            <small class="resource-protocol">
+              Protocolo: <span class="student-protocol-display">02021257293369884061</span>
+            </small>
+
             <div class="submitted-header">
               <button type="button" class="fgv-btn btn-teal btn-disabled" disabled>
                 Enviar
@@ -200,6 +210,11 @@
 
           <!-- ESTADO 4 / 7: Tela Após Recurso Enviado (com ou sem botões conforme prazo) -->
           <div id="student-state-submitted-view" class="state-block hidden">
+            <!-- Protocolo do Recurso no topo do content -->
+            <small class="resource-protocol">
+              Protocolo: <span class="student-protocol-display">02021257293369884061</span>
+            </small>
+
             <!-- Barra Superior do Recurso: Botões de Ação + Label de Status do Aluno -->
             <div class="submitted-top-header">
               <!-- Barra de Ações (Editar e Excluir) - some se prazo > 2 dias (Tela 7) -->
@@ -710,9 +725,12 @@
           <!-- MODO 1: QUESTÃO UMA POR VEZ (com Navegação Anterior/Próxima) -->
           <div id="prof-single-question-wrapper" class="question-view-mode active">
             <div class="resource-card prof-panel" id="single-question-card">
-              <!-- Cabeçalho da Questão: Título e Status Inline (Fiel ao Mockup) -->
+              <!-- Cabeçalho da Questão: Título, Protocolo e Status Inline (Fiel ao Mockup) -->
               <div class="single-q-header">
-                <h2 class="single-q-title" id="single-question-title">Questão 1</h2>
+                <div class="q-title-protocol-group">
+                  <h2 class="single-q-title" id="single-question-title">Questão 1</h2>
+                  <small class="resource-protocol" id="single-question-protocol">Protocolo: <span id="single-question-protocol-number" class="protocol-number">02021257293369884061</span></small>
+                </div>
                 <span class="resource-status-tag em-analise" id="single-question-status-tag">EM ANÁLISE</span>
               </div>
 
@@ -900,7 +918,7 @@
     <span id="toast-message">Operação realizada com sucesso</span>
   </div>
 
-  <script src="app.js?v=11"></script>
+  <script src="app.js?v=13"></script>
 </body>
 
 </html>
