@@ -1636,6 +1636,21 @@ body {
 }
 
 /* Indicador de Questão e Navegação */
+.single-q-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.single-q-title {
+  font-size: 1.35rem;
+  font-weight: 500;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
 .question-title-indicator {
   font-size: 1.45rem;
   font-weight: 400;

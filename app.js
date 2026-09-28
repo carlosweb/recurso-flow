@@ -285,6 +285,7 @@
 
     // Questão Única
     singleQuestionTitle: document.getElementById('single-question-title'),
+    singleQuestionStatusTag: document.getElementById('single-question-status-tag'),
     singleQuestionStatement: document.getElementById('single-question-statement'),
     singleStudentChoice: document.getElementById('single-student-choice'),
     singleOfficialChoice: document.getElementById('single-official-choice'),
@@ -822,6 +823,22 @@
     const q = questions[qIndex];
 
     dom.singleQuestionTitle.textContent = q.title || `Questão ${q.number || (qIndex + 1)}`;
+
+    // Status inline na visualização de questão única (Fiel ao Mockup)
+    const status = q.status || 'em_analise';
+    if (dom.singleQuestionStatusTag) {
+      if (status === 'deferido') {
+        dom.singleQuestionStatusTag.textContent = 'DEFERIDO';
+        dom.singleQuestionStatusTag.className = 'resource-status-tag deferido';
+      } else if (status === 'indeferido') {
+        dom.singleQuestionStatusTag.textContent = 'INDEFERIDO';
+        dom.singleQuestionStatusTag.className = 'resource-status-tag indeferido';
+      } else {
+        dom.singleQuestionStatusTag.textContent = 'EM ANÁLISE';
+        dom.singleQuestionStatusTag.className = 'resource-status-tag em-analise';
+      }
+    }
+
     dom.singleQuestionStatement.textContent = q.statement || 'Enunciado da questão avaliada.';
     dom.singleStudentChoice.textContent = q.studentChoice || 'Resposta do Aluno';
     dom.singleOfficialChoice.textContent = q.officialChoice || 'Gabarito Oficial';
@@ -885,7 +902,7 @@
         <div class="all-q-header">
           <h3 class="all-q-title">${q.title || `Questão ${q.number || (idx + 1)}`}</h3>
           <span class="resource-status-tag ${q.status || 'em-analise'}">
-            ${q.status === 'deferido' ? 'Deferido' : (q.status === 'indeferido' ? 'Indeferido' : 'Em Análise')}
+            ${q.status === 'deferido' ? 'DEFERIDO' : (q.status === 'indeferido' ? 'INDEFERIDO' : 'EM ANÁLISE')}
           </span>
         </div>
 
@@ -945,6 +962,17 @@
       const btnIndef = card.querySelector('.all-btn-indeferir');
       const btnSave = card.querySelector('.all-btn-save');
 
+      feedbackTextarea.addEventListener('input', () => {
+        if (isEvaluated) return;
+        q.parecer = feedbackTextarea.value;
+        if (!q.status) q.status = 'em_analise';
+        if (student.id === 'carlos-eduardo' && (q.number === 4 || q.id === 'q4')) {
+          appState.professorFeedback = q.parecer;
+          appState.professorStatus = 'em_analise';
+        }
+        saveState();
+      });
+
       btnDef.addEventListener('click', () => {
         if (isEvaluated) return;
         requestProfessorDecision(student.id, idx, 'deferido', feedbackTextarea.value);
@@ -957,8 +985,10 @@
 
       btnSave.addEventListener('click', () => {
         if (isEvaluated) return;
-        applyDecisionToQuestion(student.id, idx, q.status || 'em_analise', feedbackTextarea.value, false);
-        showToast('Rascunho de parecer salvo com sucesso!');
+        const statusToKeep = q.status || 'em_analise';
+        applyDecisionToQuestion(student.id, idx, statusToKeep, feedbackTextarea.value, false);
+        renderAllQuestionsView(student);
+        showToast('Rascunho de parecer salvo com sucesso! (Em Análise)');
       });
 
       dom.allQuestionsList.appendChild(card);
@@ -1280,14 +1310,31 @@
       requestProfessorDecision(student.id, appState.selectedQuestionIndex, 'indeferido', dom.singleProfFeedback.value);
     });
 
+    // Ações na Questão Única: Auto-rascunho ao digitar
+    dom.singleProfFeedback.addEventListener('input', () => {
+      const student = appState.students.find(s => s.id === appState.selectedStudentId);
+      if (!student) return;
+      const q = student.questions[appState.selectedQuestionIndex];
+      if (!q || q.status === 'deferido' || q.status === 'indeferido') return;
+      q.parecer = dom.singleProfFeedback.value;
+      if (!q.status) q.status = 'em_analise';
+      if (student.id === 'carlos-eduardo' && (q.number === 4 || q.id === 'q4')) {
+        appState.professorFeedback = q.parecer;
+        appState.professorStatus = 'em_analise';
+      }
+      saveState();
+    });
+
     // Ações na Questão Única: Salvar Parecer (Rascunho)
     dom.btnSingleSaveFeedback.addEventListener('click', () => {
       const student = appState.students.find(s => s.id === appState.selectedStudentId);
       if (!student) return;
       const q = student.questions[appState.selectedQuestionIndex];
       if (q && (q.status === 'deferido' || q.status === 'indeferido')) return;
-      applyDecisionToQuestion(student.id, appState.selectedQuestionIndex, q.status || 'em_analise', dom.singleProfFeedback.value, false);
-      showToast('Rascunho de parecer salvo com sucesso!');
+      const statusToKeep = q.status || 'em_analise';
+      applyDecisionToQuestion(student.id, appState.selectedQuestionIndex, statusToKeep, dom.singleProfFeedback.value, false);
+      renderSingleQuestionView(student);
+      showToast('Rascunho de parecer salvo com sucesso! (Em Análise)');
     });
 
     // Modal de Confirmação Definitiva de Decisão do Professor

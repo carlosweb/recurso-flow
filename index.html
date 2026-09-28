@@ -709,9 +709,13 @@
 
           <!-- MODO 1: QUESTÃO UMA POR VEZ (com Navegação Anterior/Próxima) -->
           <div id="prof-single-question-wrapper" class="question-view-mode active">
-            <h2 class="question-title-indicator" id="single-question-title">Questão 1</h2>
-
             <div class="resource-card prof-panel" id="single-question-card">
+              <!-- Cabeçalho da Questão: Título e Status Inline (Fiel ao Mockup) -->
+              <div class="single-q-header">
+                <h2 class="single-q-title" id="single-question-title">Questão 1</h2>
+                <span class="resource-status-tag em-analise" id="single-question-status-tag">EM ANÁLISE</span>
+              </div>
+
               <!-- Enunciado e Gabarito -->
               <div class="prof-question-context">
                 <p class="question-text" id="single-question-statement">
@@ -896,7 +900,7 @@
     <span id="toast-message">Operação realizada com sucesso</span>
   </div>
 
-  <script src="app.js?v=10"></script>
+  <script src="app.js?v=11"></script>
 </body>
 
 </html>
